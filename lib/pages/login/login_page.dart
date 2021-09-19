@@ -1,5 +1,4 @@
 
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_food/pages/home/home_page.dart';
 
@@ -83,7 +82,7 @@ class _LoginPageState extends State<LoginPage> {
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: row.map((e) => LoginButton(
                             number: e,
-                            onClick: () { _handleClickbutton(e);},
+                            onClick: () { _handleClickButton(e);},
                           )).toList(),
                         )).toList(),
                       ),
@@ -98,7 +97,7 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
-  void _handleClickbutton(int num){
+  void _handleClickButton(int num){
     setState(() {
       if(num == -1){
         if(_input.length > 0)
