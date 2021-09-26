@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_food/pages/home/home_page.dart';
 
 class LoginPage extends StatefulWidget {
+  static const routeName = '/login';
+
   const LoginPage({Key? key}) : super(key: key);
 
   @override
@@ -107,10 +109,7 @@ class _LoginPageState extends State<LoginPage> {
       }
       if(_input.length == 6){
         if(_input == _PIN){
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => HomePage()),
-          );
+          Navigator.pushReplacementNamed(context, HomePage.routeName);
         }else{
           _showMaterialDialog("ERROR !", "Invalid PIN. Please try again.");
         }
