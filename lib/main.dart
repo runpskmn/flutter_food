@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_food/pages/food/food_detail.dart';
 import 'package:flutter_food/pages/home/home_page.dart';
 import 'package:flutter_food/pages/login/login_page.dart';
-import 'package:flutter_food/pages/profile/profile_page.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 void main() {
@@ -27,7 +27,7 @@ class MyApp extends StatelessWidget {
       routes: {
         HomePage.routeName : (context) => HomePage(),
         LoginPage.routeName : (context) => LoginPage(),
-        ProfilePage.routeName :(context) => ProfilePage(),
+        FoodDetail.routeName :(context) => FoodDetail(),
       },
     );
   }
