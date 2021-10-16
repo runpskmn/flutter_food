@@ -1,6 +1,9 @@
 
+import 'dart:convert';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_food/pages/home/home_page.dart';
+import 'package:http/http.dart' as http;
 
 class LoginPage extends StatefulWidget {
   static const routeName = '/login';
@@ -13,7 +16,7 @@ class LoginPage extends StatefulWidget {
 
 class _LoginPageState extends State<LoginPage> {
   String _input = '';
-  String _PIN = '123456';
+  bool isLoading = false;
 
   @override
   Widget build(BuildContext context) {
@@ -30,77 +33,92 @@ class _LoginPageState extends State<LoginPage> {
               ],
           ),
         ),
-        child: SafeArea(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Expanded(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.lock_outline, size: 80, color: Colors.black.withOpacity(0.4),),
-                    Text("LOGIN", style: Theme.of(context).textTheme.headline1,),
-                    Text("Enter PIN to login", style: Theme.of(context).textTheme.bodyText2,),
-                    Padding(
-                      padding: const EdgeInsets.all(10.0),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          for(int i=0;i<_input.length;++i)
-                            Padding(
-                              padding: const EdgeInsets.all(4.0),
-                              child: Container(
-                                width: 25.0,
-                                height: 25.0,
-                                decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    color: Colors.black
+        child: Stack(
+          children: [
+            SafeArea(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Expanded(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.lock_outline, size: 80, color: Colors.black.withOpacity(0.4),),
+                        Text("LOGIN", style: Theme.of(context).textTheme.headline1,),
+                        Text("Enter PIN to login", style: Theme.of(context).textTheme.bodyText2,),
+                        Padding(
+                          padding: const EdgeInsets.all(10.0),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              for(int i=0;i<_input.length;++i)
+                                Padding(
+                                  padding: const EdgeInsets.all(4.0),
+                                  child: Container(
+                                    width: 25.0,
+                                    height: 25.0,
+                                    decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        color: Colors.black
+                                    ),
+                                  ),
                                 ),
-                              ),
-                            ),
-                          for(int i=0;i<6-_input.length;++i)
-                            Padding(
-                              padding: const EdgeInsets.all(4.0),
-                              child: Container(
-                                width: 25.0,
-                                height: 25.0,
-                                decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    color: Colors.black.withOpacity(0.4)
+                              for(int i=0;i<6-_input.length;++i)
+                                Padding(
+                                  padding: const EdgeInsets.all(4.0),
+                                  child: Container(
+                                    width: 25.0,
+                                    height: 25.0,
+                                    decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        color: Colors.black.withOpacity(0.4)
+                                    ),
+                                  ),
                                 ),
-                              ),
-                            ),
-                        ],),
+                            ],),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.all(12.0),
+                          child: Column(
+                            children: [
+                              [1, 2, 3],
+                              [4, 5, 6],
+                              [7, 8, 9],
+                              [-2, 0, -1],
+                            ].map((row) => Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: row.map((e) => LoginButton(
+                                number: e,
+                                onClick: () { _handleClickButton(e);},
+                              )).toList(),
+                            )).toList(),
+                          ),
+                        )
+                      ],
                     ),
-                    Padding(
-                      padding: const EdgeInsets.all(12.0),
-                      child: Column(
-                        children: [
-                          [1, 2, 3],
-                          [4, 5, 6],
-                          [7, 8, 9],
-                          [-2, 0, -1],
-                        ].map((row) => Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: row.map((e) => LoginButton(
-                            number: e,
-                            onClick: () { _handleClickButton(e);},
-                          )).toList(),
-                        )).toList(),
-                      ),
-                    )
-                  ],
+                  ),
+                ],
+              ),
+            ),
+            isLoading ? Container(
+              decoration: BoxDecoration(
+                  color: Color.fromRGBO(0, 0, 0, 0.5)
+              ),
+              child:SafeArea(
+                child: SpinKitRing(
+                  color: Colors.white,
+                  size: 80.0,
                 ),
               ),
-            ],
-          ),
+            ):SizedBox.shrink()
+          ],
         ),
       ),
     );
   }
 
   void _handleClickButton(int num){
-    setState(() {
+    setState(()  {
       if(num == -1){
         if(_input.length > 0)
           _input = _input.substring(0, _input.length - 1);
@@ -108,11 +126,29 @@ class _LoginPageState extends State<LoginPage> {
         _input = "$_input$num";
       }
       if(_input.length == 6){
-        if(_input == _PIN){
-          Navigator.pushReplacementNamed(context, HomePage.routeName);
-        }else{
-          _showMaterialDialog("ERROR !", "Invalid PIN. Please try again.");
-        }
+        isLoading = true;
+        var url = Uri.parse('https://cpsu-test-api.herokuapp.com/login');
+        var response =  http.post(url,
+          headers: <String, String>{
+          'Content-Type': 'application/json; charset=UTF-8',
+          },
+          body: jsonEncode(<String, String>{
+            'pin': _input,
+          }),
+        );
+        response.then((value) {
+          if(value.statusCode == 200){
+            Map<String, dynamic> jsonBody = json.decode(value.body);
+            if(jsonBody['data'])
+              Navigator.pushReplacementNamed(context, HomePage.routeName);
+            else
+              _showMaterialDialog("ERROR !", "Invalid PIN. Please try again.");
+
+            setState(() {
+              isLoading = false;
+            });
+          }
+        });
         _input = '';
       }
     });
